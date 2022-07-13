@@ -8,6 +8,7 @@ from moviepy.editor import (
     VideoFileClip,
     AudioFileClip,
     ImageClip,
+    TextClip,
     concatenate_videoclips,
     concatenate_audioclips,
     CompositeAudioClip,
@@ -60,6 +61,8 @@ def make_final_video(number_of_clips: int, length: int, reddit_obj: dict[str]):
     console.log(f"[bold green] Video Will Be: {int_total_length} Seconds Long")
     # add title to video
     image_clips = []
+    # Keep title forever
+    title_clip = []
     # Gather all images
     if opacity is None or float(opacity) >= 1:  # opacity not set or is set to one OR MORE
         image_clips.insert(
@@ -95,6 +98,13 @@ def make_final_video(number_of_clips: int, length: int, reddit_obj: dict[str]):
                 .resize(width=W - 100)
                 .set_opacity(float(opacity)),
             )
+        title_clip.append(
+            TextClip(reddit_obj["thread_title"], color='white',
+            stroke_color='black', stroke_width=3,
+            size=(W,(H * 0.2)),
+            font='Keep-Calm-Medium', kerning=5, interline=-1, method='caption')
+            .set_duration(length)
+        )
 
     # if os.path.exists("assets/mp3/posttext.mp3"):
     #    image_clips.insert(
@@ -107,18 +117,20 @@ def make_final_video(number_of_clips: int, length: int, reddit_obj: dict[str]):
     #    )
     # else:
     image_concat = concatenate_videoclips(image_clips).set_position(("center", "center"))
+    title_concat = concatenate_videoclips(title_clip).set_position(("center", "top"))
     image_concat.audio = audio_composite
-    final = CompositeVideoClip([background_clip, image_concat])
+    final = CompositeVideoClip([background_clip, title_concat, image_concat])
     title = re.sub(r"[^\w\s-]", "", reddit_obj["thread_title"])
     idx = re.sub(r"[^\w\s-]", "", reddit_obj["thread_id"])
     filename = f"{title}.mp4"
     subreddit = os.getenv("SUBREDDIT")
+    output_dir = os.getenv("OUTPUT_DIR")
 
     save_data(filename, title, idx)
 
-    if not exists(f"./results/{subreddit}"):
+    if not exists(f"{output_dir}/results/{subreddit}"):
         print_substep("The results folder didn't exist so I made it")
-        os.makedirs(f"./results/{subreddit}")
+        os.makedirs(f"{output_dir}/results/{subreddit}")
 
     final.write_videofile(
         "assets/temp/temp.mp4",
@@ -129,7 +141,7 @@ def make_final_video(number_of_clips: int, length: int, reddit_obj: dict[str]):
         threads=multiprocessing.cpu_count(),
     )
     ffmpeg_tools.ffmpeg_extract_subclip(
-        "assets/temp/temp.mp4", 0, length, targetname=f"results/{subreddit}/{filename}"
+        "assets/temp/temp.mp4", 0, length, targetname=f"{output_dir}/results/{subreddit}/{filename}"
     )
     # os.remove("assets/temp/temp.mp4")
 

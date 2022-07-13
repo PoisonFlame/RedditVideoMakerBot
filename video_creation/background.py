@@ -28,7 +28,7 @@ def download_background():
     """Downloads the backgrounds/s video from YouTube."""
     Path("./assets/backgrounds/").mkdir(parents=True, exist_ok=True)
     background_options = [  # uri , filename , credit
-        ("https://www.youtube.com/watch?v=n_Dv4JMiwK8", "parkour.mp4", "bbswitzer"),
+        ("https://www.youtube.com/watch?v=2OYar8OHEOU", "nature.mp4", "SmoothThing"),
         # (
         #    "https://www.youtube.com/watch?v=2X9QGY__0II",
         #    "rocket_league.mp4",
